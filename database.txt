@@ -1,0 +1,5 @@
+a01,2019,Imam Faraz Aditya,PHP Dasar
+a01,2000,Polka Rara,Java Dasar
+a01,2010,Tuti Asmara,RPL
+a01,2022,Jajat Ruhiyat,Tuning Database
+a01,2018,Ust. Abdul Saleh,Mencari Ridho-Mu
