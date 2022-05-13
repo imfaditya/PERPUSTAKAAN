@@ -1,5 +1,6 @@
 import java.io.*;
 import java.security.spec.RSAOtherPrimeInfo;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -16,8 +17,9 @@ public class Main {
             System.out.println("\nPerpustakaan");
             System.out.println("1. Tambah Data Buku");
             System.out.println("2. Tampilkan Data Buku");
-            System.out.println("3. Ubah Data Buku");
+            System.out.println("3. Cari Data Buku");
             System.out.println("4. Hapus Data Buku");
+            System.out.println("5. Ubah Data Buku");
             System.out.println("========================");
             System.out.print("Pilihan Anda : ");
             pilihanUser = terminalInput.next();
@@ -32,11 +34,14 @@ public class Main {
                     tampilkanDataBuku();
                     break;
                 case "3":
-                    System.out.println("Ubah Data Buku");
+                    System.out.println("Cari Data Buku");
+                    cariDataBuku();
                     break;
                 case "4":
                     System.out.println("Hapus Data Buku");
                     break;
+                case "5":
+                    System.out.println("Ubah Data Buku");
                 default:
                     System.err.print("Pilihan Anda Tidak Ada di Menu");
                     System.out.println();
@@ -87,6 +92,82 @@ public class Main {
         }
 
 
+    }
+
+    private static void cariDataBuku() throws IOException{
+        Scanner terminalInput = new Scanner(System.in);
+
+        // Cek apakah file database sudah ada
+        File fDatabase = new File("database.txt");
+        if (!fDatabase.exists()){
+            return;
+        }
+
+        // Baca inputan keyword pencarian dari user
+        System.out.print("Masukan Kata Kunci Pencarian : ");
+        String keyword = terminalInput.nextLine();
+
+        // Ubah inputan user kedalam bentuk array
+        StringTokenizer tokenizer = new StringTokenizer(keyword, " ");
+        int panjangTokenizer = tokenizer.countTokens();
+        String[] keywords = new String[panjangTokenizer];
+        for (int i = 0; i < panjangTokenizer; i++){
+            keywords[i] = tokenizer.nextToken();
+        }
+
+        // Ubah inputan user kedalam bentuk array menggunakan split
+        String[] keywords2 = keyword.split("\\s");
+
+        // Cek keywords dengan database
+        cekBukuDiDatabase(keywords);
+    }
+
+    private static void cekBukuDiDatabase(String[] keywords) throws IOException{
+        // Baca file dan buffer
+        FileReader inputReader;
+        BufferedReader inputBuffer;
+
+        try {
+            inputReader = new FileReader("database.txt");
+            inputBuffer = new BufferedReader(inputReader);
+        } catch (IOException e){
+            System.err.println("Database Tidak Ditemukan");
+            System.err.println(e);
+            return;
+        }
+
+        // Cek keywords dengan data di dabase
+
+        // Ambil satu baris data pada database
+        String data = inputBuffer.readLine();
+
+        System.out.printf("| %2s | %-20s | %-20s | %-20s |\n", "No", "Tahun", "Penulis", "Judul Buku");
+        int noData = 0;
+
+        while (data != null){
+            boolean isExist = true;
+
+            // Cek apakah baris yang diambil mengandung keyword
+            for (String keyword:keywords){
+                isExist = isExist && data.toLowerCase().contains(keyword.toLowerCase());
+            }
+
+            // Jika mengandung, maka akan ditampilkan
+            if (isExist){
+                StringTokenizer tokenizer = new StringTokenizer(data,",");
+                tokenizer.nextToken();
+
+                noData++;
+                System.out.printf("| %-2d |", noData);
+
+
+                while (tokenizer.hasMoreTokens()){
+                    System.out.printf(" %-20s |", tokenizer.nextToken());
+                }
+                System.out.println();
+            }
+            data = inputBuffer.readLine();
+        }
     }
 
     private static boolean getYesOrNo(String message){
