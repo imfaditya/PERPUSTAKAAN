@@ -1,5 +1,7 @@
-a01,2019,Imam Faraz Aditya,PHP Dasar
-a01,2000,Polka Rara,Java Dasar
-a01,2010,Tuti Asmara,RPL
-a01,2022,Jajat Ruhiyat,Tuning Database
-a01,2018,Ust. Abdul Saleh,Mencari Ridho-Mu
+imamfarazaditya_2019_1,2019,Imam Faraz Aditya,PHP Dasar
+imamfarazaditya_2019_2,2019,Imam Faraz Aditya,PHP Lanjutan
+polkarara_2000_1,2000,Polka Rara,Java Dasar
+tutiasmara_2010_1,2010,Tuti Asmara,RPL
+jajatruhiyat_2022_1,2022,Jajat Ruhiyat,Tuning Database
+abdulsaleh_2018_1,2018,Abdul Saleh,Mencari Ridho-Mu
+imamfarazaditya_2020_1,2020,Imam Faraz Aditya,Cara Menanam Ubi
