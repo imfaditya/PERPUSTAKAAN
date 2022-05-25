@@ -2,9 +2,7 @@ import java.io.*;
 import java.security.spec.RSAOtherPrimeInfo;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-import java.util.Scanner;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Main {
 
@@ -42,9 +40,11 @@ public class Main {
                     break;
                 case "4":
                     System.out.println("Hapus Data Buku");
+                    hapusDataBuku();
                     break;
                 case "5":
                     System.out.println("Ubah Data Buku");
+                    ubahDataBuku();
                 default:
                     System.err.print("Pilihan Anda Tidak Ada di Menu");
                     System.out.println();
@@ -144,26 +144,243 @@ public class Main {
         String[] keywords = {tahun, judul, penulis};
         boolean isExist = cekBukuDiDatabase(keywords, false);
 
+        if (!isExist){
+            boolean isWrite = getYesOrNo("Apakah Yakin Data akan Ditambahkan ke Database?");
+        }
+
         // Generate Primary Key
         // format PK yg digunakan : namapenulistanpaspasi_tahunterbit_nobukupadatahuntersebutdarisipenulis
 
         long noEntri = getNoEntriBukuPertahun(penulis, tahun);
         String primaryKey = (penulis.replaceAll("\\s+", "").toLowerCase() + "_" + tahun + "_" + (noEntri+1));
 
-
-
         if (isExist){
-            System.out.println("Buku Yang Akan Anda Input Telah Ada di Database\nDengan Data Sebagai Berikut :");
+            System.out.println("\nBuku Yang Akan Anda Input Telah Ada di Database\nDengan Data Sebagai Berikut :");
             cekBukuDiDatabase(keywords, true);
         } else{
-            // Parameter append digunakan agar saat menulis file tidak overwrite, melainkan menambah
-            outputWriter = new FileWriter("database.txt", true);
-            outputBuffer = new BufferedWriter(outputWriter);
-            outputBuffer.newLine();
-            outputBuffer.write(primaryKey+ "," + tahun + "," + penulis + "," + judul);
-            outputBuffer.flush();
-            outputBuffer.close();
+            boolean isWrite = getYesOrNo("Yakin Data Akan Ditambahkan?");
+            if (isWrite) {
+                // Parameter append digunakan agar saat menulis file tidak overwrite, melainkan menambah
+                outputWriter = new FileWriter("database.txt", true);
+                outputBuffer = new BufferedWriter(outputWriter);
+                outputBuffer.write(primaryKey + "," + tahun + "," + penulis + "," + judul);
+                outputBuffer.newLine();
+                outputBuffer.flush();
+                outputBuffer.close();
+            }
         }
+    }
+
+    private static void hapusDataBuku() throws IOException{
+        // Baca file database
+        File fileDatabase = new File("database.txt");
+        FileReader inputReader = new FileReader(fileDatabase);
+        BufferedReader inputBuffer = new BufferedReader(inputReader);
+
+        // Buat file temporary
+        File fileTemporary = new File("tempDatabase.txt");
+        FileWriter outputWriter = new FileWriter(fileTemporary);
+        BufferedWriter outputBuffer = new BufferedWriter(outputWriter);
+
+        // Tampilkan list data
+        tampilkanDataBuku();
+
+        // Get input urutan data yang akan dihapus
+        Scanner terminalInput = new Scanner(System.in);
+        System.out.print("\nMasukan No Entry Data Yang Akan Dihapus : ");
+        int entryHapus = terminalInput.nextInt();
+
+        // Baca file input per line
+        String data = inputBuffer.readLine();
+        int hitungData = 0;
+
+
+        while(data != null){
+            hitungData++;
+            boolean isDelete = false;
+            StringTokenizer tokenizer = new StringTokenizer(data, ",");
+
+            if(hitungData == entryHapus){
+                System.out.println("\nData Yang Akan Di Hapus : ");
+                System.out.println("-------------------------");
+                System.out.println("Primary Key  : " + tokenizer.nextToken());
+                System.out.println("Tahun Terbit : " + tokenizer.nextToken());
+                System.out.println("Nama Penulis : " + tokenizer.nextToken());
+                System.out.println("Judul Buku   : " + tokenizer.nextToken());
+                System.out.println("-------------------------");
+
+                isDelete = getYesOrNo("Yakin Data Diatas Akan Dihapus ?");
+            }
+
+            if (isDelete){
+                System.out.println("Data Berhasil Dihapus\n");
+            } else {
+                outputBuffer.write(data);
+                outputBuffer.newLine();
+            }
+
+            data = inputBuffer.readLine();
+        }
+        outputBuffer.flush();
+
+        outputBuffer.close();
+        outputWriter.close();
+        inputBuffer.close();
+        inputReader.close();
+
+        inputReader = new FileReader(fileTemporary);
+        inputBuffer = new BufferedReader(inputReader);
+
+        outputWriter = new FileWriter(fileDatabase);
+        outputBuffer = new BufferedWriter(outputWriter);
+
+        data = inputBuffer.readLine();
+
+        while(data != null){
+            outputBuffer.write(data);
+            outputBuffer.newLine();
+            data = inputBuffer.readLine();
+        }
+
+        outputBuffer.flush();
+
+        outputBuffer.close();
+        outputWriter.close();
+        inputBuffer.close();
+        inputReader.close();
+
+        fileTemporary.deleteOnExit();
+
+    }
+
+    private static void ubahDataBuku() throws IOException{
+        Scanner terminalInput = new Scanner(System.in);
+
+        // Baca file database
+        File fileDatabase = new File("database.txt");
+        FileReader inputReader = new FileReader(fileDatabase);
+        BufferedReader inputBuffer = new BufferedReader(inputReader);
+
+        // Buat file temporary
+        File fileTemporary = new File("tempDatabase.txt");
+        FileWriter outputWriter = new FileWriter(fileTemporary);
+        BufferedWriter outputBuffer = new BufferedWriter(outputWriter);
+
+        // Tampilkan list data
+        tampilkanDataBuku();
+
+        // Ambil input user, data mana yang akan diubah
+        System.out.print("Masukan No Entry Yang Akan Diubah : ");
+        int entryUbah = terminalInput.nextInt();
+
+        // Baca file input per line
+        String data = inputBuffer.readLine();
+
+        int count = 0;
+
+        while (data != null){
+            StringTokenizer tokenizer = new StringTokenizer(data, ",");
+            count++;
+            if(entryUbah == count){
+                System.out.println("\nData Yang Akan Di Ubah : ");
+                System.out.println("-------------------------");
+                System.out.println("Primary Key  : " + tokenizer.nextToken());
+                System.out.println("Tahun Terbit : " + tokenizer.nextToken());
+                System.out.println("Nama Penulis : " + tokenizer.nextToken());
+                System.out.println("Judul Buku   : " + tokenizer.nextToken());
+                System.out.println("-------------------------");
+
+                boolean isUbah = getYesOrNo("Yakin Untuk Diubah?");
+
+                // Ubah data
+                if (isUbah){
+                    tokenizer = new StringTokenizer(data, ",");
+                    String[] dataLabel = {"tahun", "penulis", "judul"};
+                    String[] dataTemp = new String[3];
+
+                    String dataOriginal = tokenizer.nextToken();
+                    // Masukan tokenizer pertama ke string untuk mengambil primary key
+                    String primaryKey = dataOriginal;
+
+                    for (int i = 0; i < dataLabel.length; i++){
+                        dataOriginal = tokenizer.nextToken();
+                        boolean isFieldUbah = getYesOrNo("Apakah" + dataLabel[i] + " Akan Dirubah? : ");
+
+                        if(isFieldUbah){
+                            System.out.print("Masukan Data " + dataLabel[i] + " Baru : ");
+                            if (dataLabel.equals("tahun")){
+                                dataTemp[i] = getFormatTahun();
+                            } else {
+                                dataTemp[i] = terminalInput.next();
+                            }
+                        }else{
+                            dataTemp[i] = dataOriginal;
+                        }
+                    }
+
+                    // Pastikan apakah data yang akan dirubah sudah benar
+                    tokenizer = new StringTokenizer(data, ",");
+                    System.out.println("\nKonfirmasi Data Yang Akan Di Ubah : ");
+                    System.out.println("--------------------------------------");
+                    System.out.println("Primary Key  : " + tokenizer.nextToken());
+                    System.out.println("Tahun Terbit : " + tokenizer.nextToken() + " --> " + dataTemp[0]);
+                    System.out.println("Nama Penulis : " + tokenizer.nextToken() + " --> " + dataTemp[1]);
+                    System.out.println("Judul Buku   : " + tokenizer.nextToken() + " --> " + dataTemp[2]);
+                    System.out.println("--------------------------------------");
+
+                    boolean isUpdate = getYesOrNo("Apakah data diatas sudah sesuai untuk dirubah ? (y/n) : ");
+
+                    if (isUpdate){
+                        boolean isExist = cekBukuDiDatabase(dataTemp, false);
+                        if (isExist){
+                            System.err.println("Data buku sudah da di database, proses update dibatalkan!");
+                            outputBuffer.write(data);
+                            outputBuffer.newLine();
+                        } else{
+                            outputBuffer.write(primaryKey + "," + dataTemp[0] + "," + dataTemp[1] + "," + dataTemp[2]);
+                            outputBuffer.newLine();
+                        }
+                    }
+                }
+            }else{
+                // Copy data ke temp
+                outputBuffer.write(data);
+                outputBuffer.newLine();
+            }
+
+            data = inputBuffer.readLine();
+        }
+
+        // Commit
+        outputBuffer.flush();
+
+        outputBuffer.close();
+        outputWriter.close();
+        inputBuffer.close();
+        inputReader.close();
+
+        inputReader = new FileReader(fileTemporary);
+        inputBuffer = new BufferedReader(inputReader);
+
+        outputWriter = new FileWriter(fileDatabase);
+        outputBuffer = new BufferedWriter(outputWriter);
+
+        data = inputBuffer.readLine();
+
+        while(data != null){
+            outputBuffer.write(data);
+            outputBuffer.newLine();
+            data = inputBuffer.readLine();
+        }
+
+        outputBuffer.flush();
+
+        outputBuffer.close();
+        outputWriter.close();
+        inputBuffer.close();
+        inputReader.close();
+
+        fileTemporary.deleteOnExit();
     }
 
     private static boolean cekBukuDiDatabase(String[] keywords, boolean isDisplay) throws IOException{
@@ -203,7 +420,12 @@ public class Main {
             if (isExist){
                 if (isDisplay){
                     StringTokenizer tokenizer = new StringTokenizer(data,",");
-                    tokenizer.nextToken();
+                    try {
+                        tokenizer.nextToken();
+                    } catch (NoSuchElementException e){
+                        System.out.println("masok");
+                        break;
+                    }
 
                     noData++;
 
